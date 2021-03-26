@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31005.135
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ademund.OTC.Utils", "Ademund.OTC.Utils\Ademund.OTC.Utils.csproj", "{4BEDE3AF-EA64-4C14-92EF-69E475A7FC55}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ademund.OTC.Examples", "Ademund.OTC.Examples\Ademund.OTC.Examples.csproj", "{59BD6BEF-253E-44F3-B92A-989D860E3770}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9E0A8935-4CED-473B-87B5-0AA0FCA2FF25}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4BEDE3AF-EA64-4C14-92EF-69E475A7FC55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BEDE3AF-EA64-4C14-92EF-69E475A7FC55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BEDE3AF-EA64-4C14-92EF-69E475A7FC55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BEDE3AF-EA64-4C14-92EF-69E475A7FC55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59BD6BEF-253E-44F3-B92A-989D860E3770}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59BD6BEF-253E-44F3-B92A-989D860E3770}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59BD6BEF-253E-44F3-B92A-989D860E3770}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59BD6BEF-253E-44F3-B92A-989D860E3770}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2DD79C53-BB42-4FE3-B77D-02867889E1A9}
+	EndGlobalSection
+EndGlobal
