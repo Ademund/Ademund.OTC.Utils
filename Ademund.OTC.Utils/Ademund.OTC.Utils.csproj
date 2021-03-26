@@ -6,12 +6,8 @@
     <UserSecretsId>7da3d227-ce50-4ec8-a25c-a0436e788bb9</UserSecretsId>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/Ademund/Ademund.OTC.Utils</PackageProjectUrl>
-    <Version>0.0.1</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>C# DotNet Utils for integrating with Open Telekom Cloud</Description>
-    <Copyright>Ademund</Copyright>
-    <RepositoryUrl>https://github.com/Ademund/Ademund.OTC.Utils.git</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
     <PackageTags>OTC Open Telekom Cloud</PackageTags>
   </PropertyGroup>
 
@@ -21,5 +17,5 @@
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
-  
+
 </Project>

@@ -56,9 +56,17 @@ namespace Ademund.OTC.Examples
                 var requestUri = new Uri(example.RequestUri.Replace("/{project_id}/", $"/{config.ProjectId}/"));
                 var signer = new Signer(config.AccessKey, config.SecretKey, example.Region, example.Service);
 
+                var signingClientHandler = new SigningHttpClientHandler(signer) { Proxy = new WebProxy(config.ProxyAddress), UseProxy = config.UseProxy };
+                var httpClient = new HttpClient(signingClientHandler) {
+                    BaseAddress = requestUri
+                };
+
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
                 requestMessage.Headers.Add("X-Project-Id", config.ProjectId);
-                signer.Sign(requestMessage);
+
+                var response = await httpClient.SendAsync(requestMessage);
+                string responseString = await response.Content.ReadAsStringAsync();
+                string jsonString = JToken.Parse(responseString).ToString(Formatting.Indented);
 
                 Console.WriteLine("Request Headers: ");
                 foreach (var header in requestMessage.Headers)
@@ -66,15 +74,6 @@ namespace Ademund.OTC.Examples
                     Console.WriteLine($" - {header.Key}: {string.Join(",", header.Value)}");
                 }
                 Console.WriteLine();
-
-                var messageHandler = new HttpClientHandler() { Proxy = new WebProxy(config.ProxyAddress), UseProxy = config.UseProxy };
-                var httpClient = new HttpClient(messageHandler) {
-                    BaseAddress = requestUri
-                };
-
-                var response = await httpClient.SendAsync(requestMessage);
-                string responseString = await response.Content.ReadAsStringAsync();
-                string jsonString = JToken.Parse(responseString).ToString(Formatting.Indented);
 
                 Console.WriteLine("Response: ");
                 Console.WriteLine(jsonString);
