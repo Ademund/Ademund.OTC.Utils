@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace Ademund.OTC.Utils
@@ -20,7 +21,6 @@ namespace Ademund.OTC.Utils
         private const string HeaderContentSha256 = "X-Sdk-Content-Sha256";
         private const string EmptyContentHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
         private readonly HashSet<string> _unsignedHeaders = new HashSet<string> { "content-type" };
-        private string ShortDate;
 
         public string Key { get; init; }
         public string Secret { get; init; }
@@ -38,20 +38,40 @@ namespace Ademund.OTC.Utils
 
         public void Sign(HttpRequestMessage request)
         {
+            DateTime t = GetHeaderXDate(request);
+            string basicDate = t.ToUniversalTime().ToString(BasicDateFormat);
+            string shortDate = t.ToUniversalTime().ToString(ShortDateFormat);
+            request.Headers.Set(HeaderHost, request.Headers.Get(HeaderHost) ?? request.RequestUri.Host);
+            List<string> signedHeaders = ProcessSignedHeaders(request);
+            string canonicalRequest = ConstructCanonicalRequest(request);
+            string stringToSign = StringToSign(canonicalRequest, basicDate, shortDate);
+            string signature = SignStringToSign(stringToSign, GetSigningKey(shortDate));
+            string authValue = ProcessAuthHeader(signature, signedHeaders, shortDate);
+            request.Headers.TryAddWithoutValidation(HeaderAuthorization, authValue);
+        }
+
+        public async Task SignAsync(HttpRequestMessage request)
+        {
+            DateTime t = GetHeaderXDate(request);
+            string basicDate = t.ToUniversalTime().ToString(BasicDateFormat);
+            string shortDate = t.ToUniversalTime().ToString(ShortDateFormat);
+            request.Headers.Set(HeaderHost, request.Headers.Get(HeaderHost) ?? request.RequestUri.Host);
+            List<string> signedHeaders = ProcessSignedHeaders(request);
+            string canonicalRequest = await ConstructCanonicalRequestAsync(request).ConfigureAwait(false);
+            string stringToSign = StringToSign(canonicalRequest, basicDate, shortDate);
+            string signature = SignStringToSign(stringToSign, GetSigningKey(shortDate));
+            string authValue = ProcessAuthHeader(signature, signedHeaders, shortDate);
+            request.Headers.TryAddWithoutValidation(HeaderAuthorization, authValue);
+        }
+
+        private DateTime GetHeaderXDate(HttpRequestMessage request)
+        {
             if (!DateTime.TryParseExact(request.Headers.Get(HeaderXDate), BasicDateFormat, CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal, out DateTime t))
             {
                 t = DateTime.Now;
                 request.Headers.Set(HeaderXDate, t.ToUniversalTime().ToString(BasicDateFormat));
             }
-            ShortDate = t.ToUniversalTime().ToString(ShortDateFormat);
-
-            request.Headers.Set(HeaderHost, request.Headers.Get(HeaderHost) ?? request.RequestUri.Host);
-            List<string> signedHeaders = ProcessSignedHeaders(request);
-            string canonicalRequest = ConstructCanonicalRequest(request);
-            string stringToSign = StringToSign(canonicalRequest, t);
-            string signature = SignStringToSign(stringToSign, GetSigningKey());
-            string authValue = ProcessAuthHeader(signature, signedHeaders);
-            request.Headers.TryAddWithoutValidation(HeaderAuthorization, authValue);
+            return t;
         }
 
         /// <summary>
@@ -72,6 +92,16 @@ namespace Ademund.OTC.Utils
                    $"{CanonicalHeaders(request)}\n" +
                    $"{string.Join(";", ProcessSignedHeaders(request))}\n" +
                    $"{ProcessRequestPayload(request)}";
+        }
+
+        private async Task<string> ConstructCanonicalRequestAsync(HttpRequestMessage request)
+        {
+            return $"{ProcessRequestMethod(request)}\n" +
+                   $"{ProcessCanonicalUri(request)}\n" +
+                   $"{ProcessCanonicalQueryString(request)}\n" +
+                   $"{CanonicalHeaders(request)}\n" +
+                   $"{string.Join(";", ProcessSignedHeaders(request))}\n" +
+                   $"{await ProcessRequestPayloadAsync(request).ConfigureAwait(false)}";
         }
 
         private string ProcessRequestMethod(HttpRequestMessage request)
@@ -143,13 +173,13 @@ namespace Ademund.OTC.Utils
             }
             else
             {
-                if (request.Method == HttpMethod.Get)
+                if ((request.Method != HttpMethod.Post) && (request.Method != HttpMethod.Put))
                 {
                     hexEncodePayload = EmptyContentHash;
                 }
                 else
                 {
-                    byte[] data = request.Content.ReadAsByteArrayAsync()
+                    byte[] data = request.Content?.ReadAsByteArrayAsync()
                         .GetAwaiter()
                         .GetResult();
                     hexEncodePayload = HexEncodeSha256Hash(data);
@@ -159,9 +189,32 @@ namespace Ademund.OTC.Utils
             return hexEncodePayload;
         }
 
-        private string ProcessAuthHeader(string signature, List<string> signedHeaders)
+        private async Task<string> ProcessRequestPayloadAsync(HttpRequestMessage request)
         {
-            return $"{Algorithm} Credential={Key}/{ShortDate}/{Region}/{Service}/sdk_request, SignedHeaders={string.Join(";", signedHeaders)}, Signature={signature}";
+            string hexEncodePayload;
+            if (request.Headers.Get(HeaderContentSha256) != null)
+            {
+                hexEncodePayload = request.Headers.Get(HeaderContentSha256);
+            }
+            else
+            {
+                if ((request.Method != HttpMethod.Post) && (request.Method != HttpMethod.Put))
+                {
+                    hexEncodePayload = EmptyContentHash;
+                }
+                else
+                {
+                    byte[] data = await (request.Content?.ReadAsByteArrayAsync()).ConfigureAwait(false);
+                    hexEncodePayload = HexEncodeSha256Hash(data);
+                }
+            }
+
+            return hexEncodePayload;
+        }
+
+        private string ProcessAuthHeader(string signature, List<string> signedHeaders, string shortDate)
+        {
+            return $"{Algorithm} Credential={Key}/{shortDate}/{Region}/{Service}/sdk_request, SignedHeaders={string.Join(";", signedHeaders)}, Signature={signature}";
         }
 
         private static string HexEncodeSha256Hash(byte[] body)
@@ -197,21 +250,21 @@ namespace Ademund.OTC.Utils
             return (char)(i - 10 + 'a');
         }
 
-        private string StringToSign(string canonicalRequest, DateTime t)
+        private string StringToSign(string canonicalRequest, string basicDate, string shortDate)
         {
             SHA256 sha256 = new SHA256Managed();
             byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(canonicalRequest));
             sha256.Clear();
             return $"{Algorithm}\n" +
-                   $"{t.ToUniversalTime().ToString(BasicDateFormat)}\n" +
-                   $"{ShortDate}/{Region}/{Service}/sdk_request\n" +
+                   $"{basicDate}\n" +
+                   $"{shortDate}/{Region}/{Service}/sdk_request\n" +
                    $"{ToHexString(bytes)}";
         }
 
-        private byte[] GetSigningKey()
+        private byte[] GetSigningKey(string shortDate)
         {
             byte[] kSecret = Encoding.UTF8.GetBytes($"SDK{Secret}");
-            byte[] kDate = HMacSha256(kSecret, ShortDate);
+            byte[] kDate = HMacSha256(kSecret, shortDate);
             byte[] kRegion = HMacSha256(kDate, Region);
             byte[] kService = HMacSha256(kRegion, Service);
 
