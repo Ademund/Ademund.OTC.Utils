@@ -17,6 +17,9 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.x
+        source-url: https://nuget.pkg.github.com/Ademund/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.NUGET_API_KEY}}
     - name: Generate build number
       id: buildnumber
       uses: einaregilsson/build-number@v3 
@@ -28,10 +31,7 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
+    - name: Pack
+      run: dotnet pack --configuration Release
     - name: Publish
-      uses: brandedoutcast/publish-nuget@v2.5.5
-      with:
-          PROJECT_FILE_PATH: Ademund.OTC.Utils/Ademund.OTC.Utils.csproj
-          NUGET_SOURCE: https://nuget.pkg.github.com/Ademund/index.json
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_FILE_PATH: Directory.Build.props
+      run: dotnet nuget push Ademund.OTC.Utils/bin/Release/*.nupkg
