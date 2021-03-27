@@ -38,40 +38,44 @@ namespace Ademund.OTC.Utils
 
         public void Sign(HttpRequestMessage request)
         {
-            DateTime t = GetHeaderXDate(request);
-            string basicDate = t.ToUniversalTime().ToString(BasicDateFormat);
-            string shortDate = t.ToUniversalTime().ToString(ShortDateFormat);
-            request.Headers.Set(HeaderHost, request.Headers.Get(HeaderHost) ?? request.RequestUri.Host);
-            List<string> signedHeaders = ProcessSignedHeaders(request);
+            var (basicDate, shortDate) = ProcessHeaderXDate(request);
+            ProcessHeaderHost(request);
             string canonicalRequest = ConstructCanonicalRequest(request);
-            string stringToSign = StringToSign(canonicalRequest, basicDate, shortDate);
-            string signature = SignStringToSign(stringToSign, GetSigningKey(shortDate));
-            string authValue = ProcessAuthHeader(signature, signedHeaders, shortDate);
-            request.Headers.TryAddWithoutValidation(HeaderAuthorization, authValue);
+            ProcessCanonicalRequest(request, canonicalRequest, basicDate, shortDate);
         }
 
         public async Task SignAsync(HttpRequestMessage request)
         {
-            DateTime t = GetHeaderXDate(request);
-            string basicDate = t.ToUniversalTime().ToString(BasicDateFormat);
-            string shortDate = t.ToUniversalTime().ToString(ShortDateFormat);
-            request.Headers.Set(HeaderHost, request.Headers.Get(HeaderHost) ?? request.RequestUri.Host);
-            List<string> signedHeaders = ProcessSignedHeaders(request);
+            var (basicDate, shortDate) = ProcessHeaderXDate(request);
+            ProcessHeaderHost(request);
             string canonicalRequest = await ConstructCanonicalRequestAsync(request).ConfigureAwait(false);
-            string stringToSign = StringToSign(canonicalRequest, basicDate, shortDate);
-            string signature = SignStringToSign(stringToSign, GetSigningKey(shortDate));
-            string authValue = ProcessAuthHeader(signature, signedHeaders, shortDate);
-            request.Headers.TryAddWithoutValidation(HeaderAuthorization, authValue);
+            ProcessCanonicalRequest(request, canonicalRequest, basicDate, shortDate);
         }
 
-        private DateTime GetHeaderXDate(HttpRequestMessage request)
+        private (string basicDate, string shortDate) ProcessHeaderXDate(HttpRequestMessage request)
         {
             if (!DateTime.TryParseExact(request.Headers.Get(HeaderXDate), BasicDateFormat, CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal, out DateTime t))
             {
                 t = DateTime.Now;
                 request.Headers.Set(HeaderXDate, t.ToUniversalTime().ToString(BasicDateFormat));
             }
-            return t;
+            string basicDate = t.ToUniversalTime().ToString(BasicDateFormat);
+            string shortDate = t.ToUniversalTime().ToString(ShortDateFormat);
+            return (basicDate, shortDate);
+        }
+
+        private void ProcessHeaderHost(HttpRequestMessage request)
+        {
+            request.Headers.Set(HeaderHost, request.Headers.Get(HeaderHost) ?? request.RequestUri.Host);
+        }
+
+        private void ProcessCanonicalRequest(HttpRequestMessage request, string canonicalRequest, string basicDate, string shortDate)
+        {
+            List<string> signedHeaders = ProcessSignedHeaders(request);
+            string stringToSign = StringToSign(canonicalRequest, basicDate, shortDate);
+            string signature = SignStringToSign(stringToSign, GetSigningKey(shortDate));
+            string authValue = ProcessAuthHeader(signature, signedHeaders, shortDate);
+            request.Headers.TryAddWithoutValidation(HeaderAuthorization, authValue);
         }
 
         /// <summary>
@@ -86,22 +90,23 @@ namespace Ademund.OTC.Utils
         /// </summary>
         private string ConstructCanonicalRequest(HttpRequestMessage request)
         {
-            return $"{ProcessRequestMethod(request)}\n" +
-                   $"{ProcessCanonicalUri(request)}\n" +
-                   $"{ProcessCanonicalQueryString(request)}\n" +
-                   $"{CanonicalHeaders(request)}\n" +
-                   $"{string.Join(";", ProcessSignedHeaders(request))}\n" +
+            return $"{ProcessRequestParameters(request)}\n" +
                    $"{ProcessRequestPayload(request)}";
         }
 
         private async Task<string> ConstructCanonicalRequestAsync(HttpRequestMessage request)
         {
+            return $"{ProcessRequestParameters(request)}\n" +
+                   $"{await ProcessRequestPayloadAsync(request).ConfigureAwait(false)}";
+        }
+
+        private string ProcessRequestParameters(HttpRequestMessage request)
+        {
             return $"{ProcessRequestMethod(request)}\n" +
                    $"{ProcessCanonicalUri(request)}\n" +
                    $"{ProcessCanonicalQueryString(request)}\n" +
-                   $"{CanonicalHeaders(request)}\n" +
-                   $"{string.Join(";", ProcessSignedHeaders(request))}\n" +
-                   $"{await ProcessRequestPayloadAsync(request).ConfigureAwait(false)}";
+                   $"{ProcessCanonicalHeaders(request)}\n" +
+                   $"{string.Join(";", ProcessSignedHeaders(request))}";
         }
 
         private string ProcessRequestMethod(HttpRequestMessage request)
@@ -135,7 +140,7 @@ namespace Ademund.OTC.Utils
             return string.Join("&", queryStrings);
         }
 
-        private string CanonicalHeaders(HttpRequestMessage request)
+        private string ProcessCanonicalHeaders(HttpRequestMessage request)
         {
             var headers = new List<string>();
             foreach (string key in ProcessSignedHeaders(request))
