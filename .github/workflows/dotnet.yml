@@ -34,4 +34,4 @@ jobs:
     - name: Pack
       run: dotnet pack --configuration Release
     - name: Publish
-      run: dotnet nuget push --api-key ${{secrets.PACKAGES_TOKEN}} --skip-duplicate Ademund.OTC.Utils/bin/Release/*.nupkg
+      run: dotnet nuget push --api-key ${{secrets.NUGET_API_KEY}} --skip-duplicate Ademund.OTC.Utils/bin/Release/*.nupkg
