@@ -20,11 +20,7 @@ jobs:
         source-url: https://nuget.pkg.github.com/Ademund/index.json
       env:
         NUGET_AUTH_TOKEN: ${{secrets.NUGET_API_KEY}}
-    - name: Generate build number
-      id: buildnumber
-      uses: einaregilsson/build-number@v3 
-      with:
-        token: ${{secrets.github_token}}
+        BUILDNUMBER: $GITHUB_RUN_NUMBER
     - name: Restore dependencies
       run: dotnet restore
     - name: Build

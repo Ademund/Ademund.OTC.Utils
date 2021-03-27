@@ -6,8 +6,8 @@
 		<Product>Ademund.OTC.Utils</Product>
 		<RepositoryType>Git</RepositoryType>
 		<RepositoryUrl>https://github.com/Ademund/Ademund.OTC.Utils.git</RepositoryUrl>
-		<BuildNumber Condition="'$(BUILD_NUMBER)' == ''">0</BuildNumber>
-		<VersionPrefix>0.0.5.$(BUILD_NUMBER)</VersionPrefix>
+		<BuildNumber Condition="'$(BUILDNUMBER)' == ''">0</BuildNumber>
+		<VersionPrefix>0.0.5.$(BUILDNUMBER)</VersionPrefix>
 		<VersionSuffix>-alpha</VersionSuffix>
 		<Version>$(VersionPrefix)$(VersionSuffix)</Version>
   </PropertyGroup>
