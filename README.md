@@ -1,6 +1,8 @@
 # Ademund.OTC.Utils
 C# DotNet Utils for integrating with Open Telekom Cloud
 
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Ademund/Ademund.OTC.Utils/.NET)
+
 **This library is very much alhpa at the moment!**
 
 ## Message Signing
@@ -12,7 +14,7 @@ The OTC API documentation states:
 The goal of this library is to simplify the authentication process for anybody trying to use the APIs from dotnet.
 
 Signing requires an AccessKey / SecretyKey pair and your OTC project id.
-  
+
 * [Obtaining Required Information](https://docs.otc.t-systems.com/api/apiug/apig-en-api-180328009.html)
 
 ### Simple signing of a request:
