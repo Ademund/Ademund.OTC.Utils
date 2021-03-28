@@ -18,6 +18,8 @@ jobs:
       with:
         dotnet-version: 5.0.x
         source-url: https://nuget.pkg.github.com/Ademund/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.NUGET_API_KEY}}
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
