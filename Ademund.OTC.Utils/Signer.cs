@@ -32,8 +32,8 @@ namespace Ademund.OTC.Utils
         {
             Key = key;
             Secret = secret;
-            Region ??= region;
-            Service ??= service;
+            Region = region ?? string.Empty;
+            Service = service ?? string.Empty;
         }
 
         public void Sign(HttpRequestMessage request)
