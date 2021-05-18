@@ -36,16 +36,34 @@ namespace Ademund.OTC.Utils
             Service = service ?? string.Empty;
         }
 
-        public void Sign(HttpRequestMessage request)
+        public void Sign(HttpRequestMessage request, bool forceReSign = false)
         {
+            // if the request has already been signed
+            // do not attempt to sign it again unless forceReSign is set to true
+            if (request.Headers.Contains(HeaderAuthorization)
+                && (request.Headers.Get(HeaderAuthorization)?.StartsWith(Algorithm) == true)
+                && !forceReSign)
+            {
+                return;
+            }
+
             var (basicDate, shortDate) = ProcessHeaderXDate(request);
             ProcessHeaderHost(request);
             string canonicalRequest = ConstructCanonicalRequest(request);
             ProcessCanonicalRequest(request, canonicalRequest, basicDate, shortDate);
         }
 
-        public async Task SignAsync(HttpRequestMessage request)
+        public async Task SignAsync(HttpRequestMessage request, bool forceReSign = false)
         {
+            // if the request has already been signed
+            // do not attempt to sign it again unless forceReSign is set to true
+            if (request.Headers.Contains(HeaderAuthorization)
+                && (request.Headers.Get(HeaderAuthorization)?.StartsWith(Algorithm) == true)
+                && !forceReSign)
+            {
+                return;
+            }
+
             var (basicDate, shortDate) = ProcessHeaderXDate(request);
             ProcessHeaderHost(request);
             string canonicalRequest = await ConstructCanonicalRequestAsync(request).ConfigureAwait(false);
