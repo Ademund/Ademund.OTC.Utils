@@ -64,7 +64,7 @@ namespace Ademund.OTC.Utils
         {
             if (!DateTime.TryParseExact(request.Headers.Get(HeaderXDate), BasicDateFormat, CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal, out DateTime t))
             {
-                t = DateTime.Parse("2021-08-14 19:38:27");// DateTime.Now;
+                t = DateTime.Now;
                 request.Headers.Set(HeaderXDate, t.ToUniversalTime().ToString(BasicDateFormat));
             }
             string basicDate = t.ToUniversalTime().ToString(BasicDateFormat);
