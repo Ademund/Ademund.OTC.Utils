@@ -6,9 +6,9 @@ namespace Ademund.OTC.Utils
 {
     public class SigningHttpClientHandler : HttpClientHandler
     {
-        private readonly Signer _signer;
+        private readonly ISigner _signer;
 
-        public SigningHttpClientHandler(Signer signer)
+        public SigningHttpClientHandler(ISigner signer)
         {
             _signer = signer;
         }
