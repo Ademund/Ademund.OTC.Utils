@@ -21,7 +21,7 @@ namespace Ademund.OTC.Utils
         private const string HeaderHost = "Host";
         private const string HeaderContentSha256 = "X-Amz-Content-Sha256";
         private const string EmptyContentHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-        private readonly HashSet<string> _unsignedHeaders = new() { "content-type" };
+        private readonly HashSet<string> _unsignedHeaders = new();
 
         public AWSSigner() { }
         public AWSSigner(string key, string secret, string region = null, string service = null) : base(key, secret, region, service) { }
