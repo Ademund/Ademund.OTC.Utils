@@ -64,7 +64,7 @@ namespace Ademund.OTC.Examples
                 };
 
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
-                //requestMessage.Headers.Add("X-Project-Id", config.ProjectId);
+                requestMessage.Headers.Add("X-Project-Id", config.ProjectId);
 
                 var response = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
                 string responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
