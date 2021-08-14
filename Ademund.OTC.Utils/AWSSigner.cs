@@ -54,7 +54,7 @@ namespace Ademund.OTC.Utils
                 amzHeaders += $"{header.Key}:{header.Value.First()}\n";
             }
 
-            const string contentMD5 = "";
+            string contentMD5 = request.Headers.Contains("Content-MD5") ? request.Headers.Get("Content-MD5") : "";
             DateTime date = DateTime.UtcNow;
             string dateString = date.ToString("R");
             string message = $"{request.Method}\n{contentMD5}\n{contentType}\n{dateString}\n{amzHeaders}{request.RequestUri.AbsolutePath}";
