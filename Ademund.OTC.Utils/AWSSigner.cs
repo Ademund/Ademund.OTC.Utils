@@ -57,7 +57,7 @@ namespace Ademund.OTC.Utils
             const string contentMD5 = "";
             DateTime date = DateTime.UtcNow;
             string dateString = date.ToString("R");
-            string message = $"{request.Method}\n{contentMD5}\n{contentType}\n{dateString}\n{amzHeaders}{request.RequestUri.PathAndQuery}";
+            string message = $"{request.Method}\n{contentMD5}\n{contentType}\n{dateString}\n{amzHeaders}{request.RequestUri.AbsolutePath}";
             byte[] messageBytes = Encoding.ASCII.GetBytes(message);
 
             byte[] keyBytes = Encoding.ASCII.GetBytes(Secret);
