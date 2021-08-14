@@ -12,11 +12,11 @@ namespace Ademund.OTC.Utils
     {
         private const string Algorithm = "AWS";
 
-        protected AWSSigner()
+        public AWSSigner()
         {
         }
 
-        protected AWSSigner(string key, string secret, string region = null, string service = null) : base(key, secret, region, service)
+        public AWSSigner(string key, string secret, string region = null, string service = null) : base(key, secret, region, service)
         {
         }
 
