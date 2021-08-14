@@ -15,6 +15,7 @@ namespace Ademund.OTC.Utils
         private const string BasicDateFormat = "yyyyMMddTHHmmssZ";
         private const string ShortDateFormat = "yyyyMMdd";
         private const string Algorithm = "SDK-HMAC-SHA256";
+        private const string RequestType = "sdk_request";
         private const string HeaderXDate = "X-Sdk-Date";
         private const string HeaderHost = "Host";
         private const string HeaderContentSha256 = "X-Sdk-Content-Sha256";
@@ -225,7 +226,7 @@ namespace Ademund.OTC.Utils
 
         private string ProcessAuthHeader(string signature, List<string> signedHeaders, string shortDate)
         {
-            return $"{Algorithm} Credential={Key}/{shortDate}/{Region}/{Service}/sdk_request, SignedHeaders={string.Join(";", signedHeaders)}, Signature={signature}";
+            return $"{Algorithm} Credential={Key}/{shortDate}/{Region}/{Service}/{RequestType}, SignedHeaders={string.Join(";", signedHeaders)}, Signature={signature}";
         }
 
         private static string HexEncodeSha256Hash(byte[] body)
@@ -268,7 +269,7 @@ namespace Ademund.OTC.Utils
             sha256.Clear();
             return $"{Algorithm}\n" +
                    $"{basicDate}\n" +
-                   $"{shortDate}/{Region}/{Service}/sdk_request\n" +
+                   $"{shortDate}/{Region}/{Service}/{RequestType}\n" +
                    $"{ToHexString(bytes)}";
         }
 
@@ -279,7 +280,7 @@ namespace Ademund.OTC.Utils
             byte[] kRegion = HMacSha256(kDate, Region);
             byte[] kService = HMacSha256(kRegion, Service);
 
-            return HMacSha256(kService, "sdk_request");
+            return HMacSha256(kService, RequestType);
         }
 
         private string SignStringToSign(string stringToSign, byte[] signingKey)
