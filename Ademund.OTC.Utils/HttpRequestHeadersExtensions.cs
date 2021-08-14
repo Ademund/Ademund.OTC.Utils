@@ -15,5 +15,16 @@ namespace Ademund.OTC.Utils
         {
             return headers.Contains(name) ? headers.GetValues(name).FirstOrDefault() : null;
         }
+
+        public static void Set(this HttpContentHeaders headers, string name, string value)
+        {
+            if (headers.Contains(name)) headers.Remove(name);
+            headers.Add(name, value);
+        }
+
+        public static string Get(this HttpContentHeaders headers, string name)
+        {
+            return headers.Contains(name) ? headers.GetValues(name).FirstOrDefault() : null;
+        }
     }
 }

@@ -48,13 +48,13 @@ namespace Ademund.OTC.Utils
         private void SetAuthorizationHeader(HttpRequestMessage request)
         {
             string amzHeaders = "";
-            string contentType = request.Content == null ? "" : request.Content.Headers.ContentType.MediaType;
+            string contentType = request.Content?.Headers.ContentType?.MediaType ?? "";
             foreach (KeyValuePair<string, IEnumerable<string>> header in request.Headers.Where(x => x.Key.StartsWith("x-amz-")).OrderBy(x => x.Key).ToList())
             {
                 amzHeaders += $"{header.Key}:{header.Value.First()}\n";
             }
 
-            string contentMD5 = request.Headers.Contains("Content-MD5") ? request.Headers.Get("Content-MD5") : "";
+            string contentMD5 = request.Content?.Headers.Contains("Content-MD5") == true ? request.Content.Headers.Get("Content-MD5") : "";
             DateTime date = DateTime.UtcNow;
             string dateString = date.ToString("R");
             string message = $"{request.Method}\n{contentMD5}\n{contentType}\n{dateString}\n{amzHeaders}{request.RequestUri.AbsolutePath}";
