@@ -10,33 +10,21 @@ using System.Web;
 
 namespace Ademund.OTC.Utils
 {
-    public class Signer
+    public class Signer : BaseSigner
     {
         private const string BasicDateFormat = "yyyyMMddTHHmmssZ";
         private const string ShortDateFormat = "yyyyMMdd";
         private const string Algorithm = "SDK-HMAC-SHA256";
         private const string HeaderXDate = "X-Sdk-Date";
         private const string HeaderHost = "Host";
-        private const string HeaderAuthorization = "Authorization";
         private const string HeaderContentSha256 = "X-Sdk-Content-Sha256";
         private const string EmptyContentHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-        private readonly HashSet<string> _unsignedHeaders = new HashSet<string> { "content-type" };
-
-        public string Key { get; init; }
-        public string Secret { get; init; }
-        public string Region { get; init; } = string.Empty;
-        public string Service { get; init; } = string.Empty;
+        private readonly HashSet<string> _unsignedHeaders = new() { "content-type" };
 
         public Signer() { }
-        public Signer(string key, string secret, string region = null, string service = null)
-        {
-            Key = key;
-            Secret = secret;
-            Region = region ?? string.Empty;
-            Service = service ?? string.Empty;
-        }
+        public Signer(string key, string secret, string region = null, string service = null) : base(key, secret, region, service) { }
 
-        public void Sign(HttpRequestMessage request, bool forceReSign = false)
+        public override void Sign(HttpRequestMessage request, bool forceReSign = false)
         {
             // if the request has already been signed
             // do not attempt to sign it again unless forceReSign is set to true
@@ -53,7 +41,7 @@ namespace Ademund.OTC.Utils
             ProcessCanonicalRequest(request, canonicalRequest, basicDate, shortDate);
         }
 
-        public async Task SignAsync(HttpRequestMessage request, bool forceReSign = false)
+        public override async Task SignAsync(HttpRequestMessage request, bool forceReSign = false)
         {
             // if the request has already been signed
             // do not attempt to sign it again unless forceReSign is set to true
