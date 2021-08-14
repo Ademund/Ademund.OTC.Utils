@@ -54,7 +54,9 @@ namespace Ademund.OTC.Examples
                 Console.WriteLine();
 
                 var requestUri = new Uri(example.RequestUri.Replace("/{project_id}/", $"/{config.ProjectId}/"));
-                var signer = new Signer(config.AccessKey, config.SecretKey, example.Region, example.Service);
+                ISigner signer = example.Service == "obs" ?
+                    new AWSSigner(config.AccessKey, config.SecretKey, example.Region, example.Service) :
+                    new Signer(config.AccessKey, config.SecretKey, example.Region, example.Service);
 
                 var signingClientHandler = new SigningHttpClientHandler(signer) { Proxy = new WebProxy(config.ProxyAddress), UseProxy = config.UseProxy };
                 var httpClient = new HttpClient(signingClientHandler) {
@@ -64,9 +66,9 @@ namespace Ademund.OTC.Examples
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
                 requestMessage.Headers.Add("X-Project-Id", config.ProjectId);
 
-                var response = await httpClient.SendAsync(requestMessage);
-                string responseString = await response.Content.ReadAsStringAsync();
-                string jsonString = JToken.Parse(responseString).ToString(Formatting.Indented);
+                var response = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
+                string responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                //string jsonString = JToken.Parse(responseString).ToString(Formatting.Indented);
 
                 Console.WriteLine("Request Headers: ");
                 foreach (var header in requestMessage.Headers)
@@ -76,7 +78,7 @@ namespace Ademund.OTC.Examples
                 Console.WriteLine();
 
                 Console.WriteLine("Response: ");
-                Console.WriteLine(jsonString);
+                Console.WriteLine(responseString);
                 Console.WriteLine();
 
                 Console.WriteLine("Press any key to continue");

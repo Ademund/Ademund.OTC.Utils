@@ -48,6 +48,7 @@ namespace Ademund.OTC.Utils
         private void SetAuthorizationHeader(HttpRequestMessage request)
         {
             string amzHeaders = "";
+            string contentType = request.Content == null ? "" : request.Content.Headers.ContentType.MediaType;
             foreach (KeyValuePair<string, IEnumerable<string>> header in request.Headers.Where(x => x.Key.StartsWith("x-amz-")).OrderBy(x => x.Key).ToList())
             {
                 amzHeaders += $"{header.Key}:{header.Value.First()}\n";
@@ -56,7 +57,7 @@ namespace Ademund.OTC.Utils
             const string contentMD5 = "";
             DateTime date = DateTime.UtcNow;
             string dateString = date.ToString("R");
-            string message = $"{request.Method}\n{contentMD5}\n{request.Content.Headers.ContentType}\n{dateString}\n{amzHeaders}{request.RequestUri.AbsoluteUri}";
+            string message = $"{request.Method}\n{contentMD5}\n{contentType}\n{dateString}\n{amzHeaders}{request.RequestUri.AbsoluteUri}";
             byte[] messageBytes = Encoding.ASCII.GetBytes(message);
 
             byte[] keyBytes = Encoding.ASCII.GetBytes(Secret);
