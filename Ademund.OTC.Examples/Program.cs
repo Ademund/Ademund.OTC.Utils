@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -63,8 +64,8 @@ namespace Ademund.OTC.Examples
                     BaseAddress = requestUri
                 };
 
-                var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
-                //requestMessage.Headers.Add("X-Project-Id", config.ProjectId);
+                var requestMessage = new HttpRequestMessage(new HttpMethod(example.Method), requestUri);
+                requestMessage.Headers.Add("X-Project-Id", config.ProjectId);
 
                 var response = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
                 string responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);

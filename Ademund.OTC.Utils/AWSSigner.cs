@@ -127,9 +127,7 @@ namespace Ademund.OTC.Utils
         private string ProcessCanonicalUri(HttpRequestMessage request)
         {
             string uri = request.RequestUri.GetComponents(UriComponents.Path | UriComponents.KeepDelimiter, UriFormat.Unescaped);
-            uri = string.Join("/", uri.Split('/').Select(HttpEncoder.UrlEncode).ToList());
-            uri = uri.EndsWith("/") ? uri : uri + "/";
-            return uri;
+            return string.Join("/", uri.Split('/').Select(HttpEncoder.UrlEncode).ToList());
         }
 
         private string ProcessCanonicalQueryString(HttpRequestMessage request)
