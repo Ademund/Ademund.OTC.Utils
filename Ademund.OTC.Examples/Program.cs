@@ -55,7 +55,7 @@ namespace Ademund.OTC.Examples
 
                 var requestUri = new Uri(example.RequestUri.Replace("/{project_id}/", $"/{config.ProjectId}/"));
                 ISigner signer = example.Service == "obs" ?
-                    new AWSSigner(config.AccessKey, config.SecretKey, example.Region, example.Service) :
+                    new AWSSigner(config.AccessKey, config.SecretKey, example.Region, "s3") :
                     new Signer(config.AccessKey, config.SecretKey, example.Region, example.Service);
 
                 var signingClientHandler = new SigningHttpClientHandler(signer) { Proxy = new WebProxy(config.ProxyAddress), UseProxy = config.UseProxy };
@@ -64,7 +64,7 @@ namespace Ademund.OTC.Examples
                 };
 
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
-                requestMessage.Headers.Add("X-Project-Id", config.ProjectId);
+                //requestMessage.Headers.Add("X-Project-Id", config.ProjectId);
 
                 var response = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
                 string responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);

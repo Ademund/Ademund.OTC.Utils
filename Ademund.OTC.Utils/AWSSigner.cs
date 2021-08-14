@@ -14,6 +14,7 @@ namespace Ademund.OTC.Utils
     {
         private const string BasicDateFormat = "yyyyMMddTHHmmssZ";
         private const string ShortDateFormat = "yyyyMMdd";
+        private const string SigningKeyPrefix = "AWS4";
         private const string Algorithm = "AWS4-HMAC-SHA256";
         private const string RequestType = "aws4_request";
         private const string HeaderXDate = "X-Amz-Date";
@@ -63,7 +64,7 @@ namespace Ademund.OTC.Utils
         {
             if (!DateTime.TryParseExact(request.Headers.Get(HeaderXDate), BasicDateFormat, CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal, out DateTime t))
             {
-                t = DateTime.Now;
+                t = DateTime.Parse("2021-08-14 19:38:27");// DateTime.Now;
                 request.Headers.Set(HeaderXDate, t.ToUniversalTime().ToString(BasicDateFormat));
             }
             string basicDate = t.ToUniversalTime().ToString(BasicDateFormat);
@@ -97,14 +98,16 @@ namespace Ademund.OTC.Utils
         /// </summary>
         private string ConstructCanonicalRequest(HttpRequestMessage request)
         {
+            string requestPayload = ProcessRequestPayload(request);
             return $"{ProcessRequestParameters(request)}\n" +
-                   $"{ProcessRequestPayload(request)}";
+                   $"{requestPayload}";
         }
 
         private async Task<string> ConstructCanonicalRequestAsync(HttpRequestMessage request)
         {
+            string requestPayload = await ProcessRequestPayloadAsync(request).ConfigureAwait(false);
             return $"{ProcessRequestParameters(request)}\n" +
-                   $"{await ProcessRequestPayloadAsync(request).ConfigureAwait(false)}";
+                   $"{requestPayload}";
         }
 
         private string ProcessRequestParameters(HttpRequestMessage request)
@@ -157,7 +160,7 @@ namespace Ademund.OTC.Utils
                 foreach (string value in values)
                 {
                     headers.Add(key + ":" + value.Trim());
-                    request.Headers.Set(key, Encoding.GetEncoding("iso-8859-1").GetString(Encoding.UTF8.GetBytes(value)));
+                    //request.Headers.Set(key, Encoding.GetEncoding("iso-8859-1").GetString(Encoding.UTF8.GetBytes(value)));
                 }
             }
 
@@ -195,6 +198,7 @@ namespace Ademund.OTC.Utils
                         .GetAwaiter()
                         .GetResult();
                     hexEncodePayload = HexEncodeSha256Hash(data);
+                    request.Headers.Set(HeaderContentSha256, hexEncodePayload);
                 }
             }
 
@@ -219,6 +223,7 @@ namespace Ademund.OTC.Utils
                     byte[] data = await (request.Content?.ReadAsByteArrayAsync()).ConfigureAwait(false);
                     hexEncodePayload = HexEncodeSha256Hash(data);
                 }
+                request.Headers.Set(HeaderContentSha256, hexEncodePayload);
             }
 
             return hexEncodePayload;
@@ -275,7 +280,7 @@ namespace Ademund.OTC.Utils
 
         private byte[] GetSigningKey(string shortDate)
         {
-            byte[] kSecret = Encoding.UTF8.GetBytes($"SDK{Secret}");
+            byte[] kSecret = Encoding.UTF8.GetBytes($"{SigningKeyPrefix}{Secret}");
             byte[] kDate = HMacSha256(kSecret, shortDate);
             byte[] kRegion = HMacSha256(kDate, Region);
             byte[] kService = HMacSha256(kRegion, Service);

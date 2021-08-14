@@ -14,6 +14,7 @@ namespace Ademund.OTC.Utils
     {
         private const string BasicDateFormat = "yyyyMMddTHHmmssZ";
         private const string ShortDateFormat = "yyyyMMdd";
+        private const string SigningKeyPrefix = "SDK";
         private const string Algorithm = "SDK-HMAC-SHA256";
         private const string RequestType = "sdk_request";
         private const string HeaderXDate = "X-Sdk-Date";
@@ -275,7 +276,7 @@ namespace Ademund.OTC.Utils
 
         private byte[] GetSigningKey(string shortDate)
         {
-            byte[] kSecret = Encoding.UTF8.GetBytes($"SDK{Secret}");
+            byte[] kSecret = Encoding.UTF8.GetBytes($"{SigningKeyPrefix}{Secret}");
             byte[] kDate = HMacSha256(kSecret, shortDate);
             byte[] kRegion = HMacSha256(kDate, Region);
             byte[] kService = HMacSha256(kRegion, Service);
